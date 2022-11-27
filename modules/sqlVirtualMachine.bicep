@@ -4,6 +4,12 @@ param baseName string
 @description('Number of Virtual Machines to create. Defaults to 1')
 param count int = 1
 
+@description('Time to automatically shutdown the VM each day. Defaults to 7PM')
+param autoShutdownTime string = '1900'
+
+@description('Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown.')
+param emailNotification string
+
 @description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
 param location string = resourceGroup().location
 
@@ -63,6 +69,7 @@ param vmTimezone string = ''
 @description('Tags to assign to the resource')
 param tags object
 
+@description('Adding some standard tags for VMs')
 var allTags = union({
   type: 'sql-vm'
   osType: 'Windows'
@@ -70,6 +77,7 @@ var allTags = union({
   sqlVersion: '${split(offer,'-')[0]}'
 }, tags)
 
+@description('Setting some default values for the image configuration')
 var imageReference = {
   offer: offer
   publisher: 'microsoftsqlserver'
@@ -77,12 +85,22 @@ var imageReference = {
   version: 'latest'
 }
 
+@description('Setting standard names for each VM name, disk, etc.')
 var names = [for index in range(0, count): {
   vmName: '${baseName}0${index}'
   nicName: '${baseName}0${index}-nic'
   osDiskName: '${baseName}0${index}-osdisk'
   dataDiskName: '${baseName}0${index}-datadisk'
 }]
+
+@description('Create the notification settings if emailNotification is provided')
+var notifySettings = empty(emailNotification) ? {} : {
+  timeInMinutes: 15
+  status: 'Enabled'
+  emailRecipient: [
+    emailNotification
+  ]
+}
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2022-05-01' = [for (v,index) in names: {
   name: v.nicName
@@ -219,8 +237,30 @@ resource sqlVirtualMachine 'Microsoft.SqlVirtualMachine/sqlVirtualMachines@2022-
   }
 }]
 
-@description('Name, IP Address, Identity, and Zones for each deployed Virtual Machine')
+resource vmAutoShutdown 'Microsoft.DevTestLab/labs/schedules@2018-09-15' = [for (v,index) in names: {
+  name: 'shutdown-${v.vmName}'
+  location: location
+  tags: tags
+  properties: {
+    status: empty(autoShutdownTime) ? 'Disabled' : 'Enabled'
+    taskType: 'ComputeVmShutdownTask'
+    dailyRecurrence: {
+      time: autoShutdownTime
+    }
+    timeZoneId: vmTimezone
+    notificationSettings: notifySettings
+    targetResourceId: virtualMachine[index].id
+  }
+}]
+
+@description('Name and IP Address of each deployed Virtual Machine')
 output vmDetails array = [for (v,index) in names: {
   name: virtualMachine[index].name
   ipAddress: networkInterface[index].properties.ipConfigurations[0].properties.privateIPAddress
 }]
+
+metadata repository = {
+  author: 'Shawn Melton'
+  source: 'https://github.com/wsmelton/az-lab-dbatools'
+  module: 'sqlVirtualMachine.bicep'
+}

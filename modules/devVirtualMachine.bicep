@@ -1,13 +1,19 @@
 @description('The base value to use for generating the Virtual Machine.')
 param baseName string
 
+@description('Time to automatically shutdown the VM each day. Defaults to 7PM')
+param autoShutdownTime string = '1900'
+
+@description('Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown.')
+param emailNotification string
+
 @description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
 param location string = resourceGroup().location
 
 @description('The resourceId of teh subnet the NIC will join.')
 param subnetId string
 
-@description('Azure Sku name for the Virtual Machine. Defaults to Standard_D8s_v3')
+@description('Azure Sku name for the Virtual Machine. If you want to use Docker, ensure you pick a sku that supports it. Defaults to Standard_D8s_v3')
 param size string = 'Standard_D8s_v3'
 
 @description('Username for the Virtual Machine local administrator account. Defaults to dbatools')
@@ -26,14 +32,17 @@ param tags object
 @description('File URI to script that will be executed on the Virtual Machine. Defaults to GitHub script of author.')
 param cseFileUri string = 'https://raw.githubusercontent.com/wsmelton/az-lab-dbatools/main/scripts/devSetup.ps1'
 
+@description('Get the script name')
 var scriptFileName = last(split(cseFileUri, '/'))
 
+@description('Adding some standard tags for VMs')
 var allTags = union({
   type: 'dev-vm'
   osType: 'Windows'
   osVersion: 'win11'
 }, tags)
 
+@description('Setting some default values for the image configuration')
 var imageReference = {
   offer: 'windows-11'
   publisher: 'microsoftwindowsdesktop'
@@ -41,8 +50,22 @@ var imageReference = {
   version: 'latest'
 }
 
+@description('Create the notification settings if emailNotification is provided')
+var notifySettings = empty(emailNotification) ? {} : {
+  timeInMinutes: 15
+  status: 'Enabled'
+  emailRecipient: [
+    emailNotification
+  ]
+}
+
+@description('Standardize name of VM')
 var vmName = '${baseName}01'
+
+@description('Standardize name of Network Interface')
 var nicName = '${baseName}01-nic'
+
+@description('Standardize name of OS Disk')
 var osDiskName = '${baseName}01-osdisk'
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2022-05-01' = {
@@ -149,4 +172,29 @@ resource windowsVMExtensions 'Microsoft.Compute/virtualMachines/extensions@2022-
       commandToExecute: 'powershell -ExecutionPolicy Bypass -file ${scriptFileName}'
     }
   }
+}
+
+resource vmAutoShutdown 'Microsoft.DevTestLab/labs/schedules@2018-09-15' = {
+  name: 'shutdown-${vmName}'
+  location: location
+  tags: tags
+  properties: {
+    status: empty(autoShutdownTime) ? 'Disabled' : 'Enabled'
+    taskType: 'ComputeVmShutdownTask'
+    dailyRecurrence: {
+      time: autoShutdownTime
+    }
+    timeZoneId: vmTimezone
+    notificationSettings: notifySettings
+    targetResourceId: virtualMachine.id
+  }
+}
+
+@description('Virtual Machine name')
+output name string = virtualMachine.name
+
+metadata repository = {
+  author: 'Shawn Melton'
+  source: 'https://github.com/wsmelton/az-lab-dbatools'
+  module: 'devVirtualMachine.bicep'
 }
