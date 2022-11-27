@@ -24,7 +24,7 @@ param vmTimezone string = ''
 param tags object
 
 @description('File URI to script that will be executed on the Virtual Machine. Defaults to GitHub script of author.')
-param cseFileUri string = 'https://github.com/wsmelton/az-lab-dbatools/main/scripts/devSetup.ps1'
+param cseFileUri string = 'https://raw.githubusercontent.com/wsmelton/az-lab-dbatools/main/scripts/devSetup.ps1'
 
 var scriptFileName = last(split(cseFileUri, '/'))
 
