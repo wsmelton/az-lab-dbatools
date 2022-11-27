@@ -7,6 +7,7 @@ param location string = resourceGroup().location
 @description('Tags to assign to the resource')
 param tags object
 
+@description('Adding some standard tags')
 var allTags = union({
   type: 'secrets'
 }, tags)
@@ -29,4 +30,11 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
+@description('Key Vault name')
 output name string = keyVault.name
+
+metadata repository = {
+  author: 'Shawn Melton'
+  source: 'https://github.com/wsmelton/az-lab-dbatools'
+  module: 'keyVault.bicep'
+}

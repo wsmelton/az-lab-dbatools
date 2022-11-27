@@ -7,6 +7,7 @@ param location string = resourceGroup().location
 @description('Tags to assign to the resource')
 param tags object
 
+@description('Adding some standard tags')
 var allTags = union({
   type: 'networking'
 }, tags)
@@ -95,5 +96,14 @@ resource bastionService 'Microsoft.Network/bastionHosts@2022-05-01' = {
   }
 }
 
-output vnetName string = virtualNetwork.name
-output bastionName string = bastionService.name
+@description('Virtual Network name')
+output name string = virtualNetwork.name
+
+@description('Bastion Host name')
+output bastionHostName string = bastionService.name
+
+metadata repository = {
+  author: 'Shawn Melton'
+  source: 'https://github.com/wsmelton/az-lab-dbatools'
+  module: 'virtualNetwork.bicep'
+}
