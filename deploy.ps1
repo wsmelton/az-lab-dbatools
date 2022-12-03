@@ -4,8 +4,9 @@ param(
     # PSD1 parameter file
     [string]$PSDataFile = '.\deploy-parameters.psd1',
 
-    # Additional parameters to pass to the deployment
-    [hashtable]$Parameters
+    # Administrator password to use for VM creation
+    [Parameter(Mandatory)]
+    [securestring]$AdminPassword
 )
 
 begin {
@@ -68,6 +69,7 @@ process {
             <# trim params not used in the Bicep templates #>
             $bicepTemplateParams.Remove('subscriptionId')
             $bicepTemplateParams.Remove('tenantId')
+            $bicepTemplateParams.Add('adminPassword',$AdminPassword)
 
             <# add tags param value from param data or set a default value #>
             $paramData['tags'] ? $bicepTemplateParams.Add('tags',$paramData['tags']) : $bicepTemplateParams.Add('tags',$tags)
@@ -79,17 +81,13 @@ process {
                 TemplateParameterObject = $bicepTemplateParams
                 TemplateFile            = '.\main.bicep'
             }
-            $resourceDeployment = New-AzResourceGroupDeployment @resourceGroupDeployParams -Verbose
+            New-AzResourceGroupDeployment @resourceGroupDeployParams -Verbose
         }
     } else {
         <# if we are missing the required values, throw a pretty error #>
         $missingMsg = 'One of the required values were not found in the data file: baseName: {0} | location: {1} | tenantId: {2} | subscriptionId: {3}' -f $baseNameValue, $locationValue, $tenantIdValue, $subscriptionIdValue
         throw $missingMsg
     }
-}
-end {
-    <# if deployment was successful output proper PS object of the template output values #>
-    $resourceDeployment.ProvisioningState -eq 'Succeeded' ? ($resourceDeployment.Outputs | ConvertTo-Json | ConvertFrom-Json) : $null
 }
 <#
 .SYNOPSIS
