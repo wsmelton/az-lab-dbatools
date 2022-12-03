@@ -30,6 +30,11 @@ The [deploy.ps1](deploy.ps1) script is the entry point for deploying these resou
 
 ![output of calling deploy.ps1 script](https://user-images.githubusercontent.com/11204251/205462991-e2da086c-9768-47e3-a6e4-35de8be11b79.png)
 
+If everything completes successfully you will see output as below:
+
+![output of deployment](https://user-images.githubusercontent.com/11204251/205463222-39914885-d027-488f-b9ab-22ef143967ea.png)
+
+
 ## Deployment Process
 
 A PSD1 file is used to input parameters to the Bicep template.
