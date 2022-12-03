@@ -6,35 +6,6 @@ This repository contains an Azure Bicep deployment that will provide a quick sta
 
 The [Deploy to Azure](https://azure.microsoft.com/en-gb/blog/deploy-to-azure-button-for-azure-websites-2/) button is commonly used with repositories on GitHub. It is not commonly used internally with companies that are creating the DevOps process and writing CI/CD deployments. The intention is to show and provide a real-world deployment for SQL Server and resources in Azure.
 
-## Getting Started
-
-Clone the repository and then create the file `deploy-parameters.psd1` in the root directory. You can see sample content below for the PSD1 file.
-
-```powershell
-@{
-    tenantId = '00000000-0000-000b-aa0a-000a000c0000'
-    subscriptionId = '00000000-0000-000b-aa0a-000a000c0000'
-    location = 'eastus'
-    baseName = 'lab'
-    emailAddress = '<an email address>'
-    vmCount = 1
-    adminUser = 'labadmin'
-    timezone = 'Central Standard Time'
-    userId = '00000000-0000-0000-0000-000000000000'
-}
-```
-
-> **Note**: The User ID should by the ObjectID of your Azure AD account. This account requires Contributor role to either the subscription **or** a current Resource Group in the Azure Subscription
-
-The [deploy.ps1](deploy.ps1) script is the entry point for deploying these resources to an Azure Subscription.
-
-![output of calling deploy.ps1 script](https://user-images.githubusercontent.com/11204251/205462991-e2da086c-9768-47e3-a6e4-35de8be11b79.png)
-
-If everything completes successfully you will see output as below:
-
-![output of deployment](https://user-images.githubusercontent.com/11204251/205463222-39914885-d027-488f-b9ab-22ef143967ea.png)
-
-
 ## Deployment Process
 
 A PSD1 file is used to input parameters to the Bicep template.
@@ -84,3 +55,35 @@ The structure of this deployment is using a module structure. Bicep templates ca
 
 - SQL Server 2022 Developer Edition
 - SQL Server 2019 Developer Edition
+
+## Getting Started
+
+Clone the repository and then create the file `deploy-parameters.psd1` in the root directory. You can see sample content below for the PSD1 file.
+
+```powershell
+@{
+    tenantId = '00000000-0000-000b-aa0a-000a000c0000'
+    subscriptionId = '00000000-0000-000b-aa0a-000a000c0000'
+    location = 'eastus'
+    baseName = 'lab'
+    emailAddress = '<an email address>'
+    vmCount = 1
+    adminUser = 'labadmin'
+    timezone = 'Central Standard Time'
+    userId = '00000000-0000-0000-0000-000000000000'
+}
+```
+
+> **Note**: The User ID should by the ObjectID of your Azure AD account. This account requires Contributor role to either the subscription **or** a current Resource Group in the Azure Subscription
+
+The [deploy.ps1](deploy.ps1) script is the entry point for deploying these resources to an Azure Subscription.
+
+![output of calling deploy.ps1 script](https://user-images.githubusercontent.com/11204251/205462991-e2da086c-9768-47e3-a6e4-35de8be11b79.png)
+
+If everything completes successfully you will see output as below:
+
+![output of deployment](https://user-images.githubusercontent.com/11204251/205463587-8ef6ae93-a34a-436d-91d7-958e6ee0bcae.png)
+
+You can use `Get-AzResource` to list out what exist in the Resource Group after the deployment completes.
+
+![output of Get-AzResource](https://user-images.githubusercontent.com/11204251/205463620-1cc8ffc0-5af0-4977-ba14-e5f9c9f3942d.png)
