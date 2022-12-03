@@ -8,13 +8,16 @@ param count int = 1
 param autoShutdownTime string = '1900'
 
 @description('Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown.')
-param emailNotification string
+param emailNotification string = ''
 
 @description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
 param location string = resourceGroup().location
 
-@description('The resourceId of teh subnet the NIC will join.')
-param subnetId string
+@description('The name of the Virtual Network.')
+param vnetName string
+
+@description('The name of the subnet for the Virtual Machine NIC.')
+param subnetName string
 
 @description('Enable accelerated networking feature on the Virtual Machine NIC. Defaults to false.')
 param acceleratedNetworking bool = false
@@ -73,8 +76,8 @@ param tags object
 var allTags = union({
   type: 'sql-vm'
   osType: 'Windows'
-  osVersion: '${split(offer,'-')[-1]}'
-  sqlVersion: '${split(offer,'-')[0]}'
+  osVersion: '${last(split(offer,'-'))}'
+  sqlVersion: '${first(split(offer,'-'))}'
 }, tags)
 
 @description('Setting some default values for the image configuration')
@@ -85,25 +88,29 @@ var imageReference = {
   version: 'latest'
 }
 
-@description('Setting standard names for each VM name, disk, etc.')
-var names = [for index in range(0, count): {
-  vmName: '${baseName}0${index}'
-  nicName: '${baseName}0${index}-nic'
-  osDiskName: '${baseName}0${index}-osdisk'
-  dataDiskName: '${baseName}0${index}-datadisk'
+@description('Setting standard name for each VM name to create')
+var names = [for index in range(1, count): {
+  vmName: '${baseName}${first(split(offer,'-'))}0${index}'
 }]
 
 @description('Create the notification settings if emailNotification is provided')
 var notifySettings = empty(emailNotification) ? {} : {
   timeInMinutes: 15
   status: 'Enabled'
-  emailRecipient: [
-    emailNotification
-  ]
+  emailRecipient: emailNotification
+  notificationLocale: 'en'
+}
+
+resource network 'Microsoft.Network/virtualNetworks@2022-05-01' existing = {
+  name: vnetName
+}
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-05-01' existing = {
+  name: subnetName
+  parent: network
 }
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2022-05-01' = [for (v,index) in names: {
-  name: v.nicName
+  name: '${v.vmName}-nic0${index}'
   location: location
   tags: allTags
   properties: {
@@ -116,7 +123,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2022-05-01' = [fo
         properties: {
           primary: true
           subnet: {
-            id: subnetId
+            id: subnet.id
           }
           privateIPAllocationMethod: 'Dynamic'
           privateIPAddressVersion: 'IPv4'
@@ -141,7 +148,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-08-01' = [for (v
     storageProfile: {
       osDisk: {
         osType: 'Windows'
-        name: v.osDiskName
+        name: '${v.vmName}-osdisk'
         createOption: 'FromImage'
         caching: 'ReadWrite'
         deleteOption: 'Delete'
@@ -152,7 +159,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-08-01' = [for (v
       imageReference: imageReference
       dataDisks: [
         {
-          name: v.dataDiskName
+          name: '${v.vmName}-datadisk'
           lun: 0
           diskSizeGB: 25
           createOption: 'Empty'
@@ -168,7 +175,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-08-01' = [for (v
     networkProfile: {
       networkInterfaces: [
         {
-          id: resourceId('Microsoft.Network/networkInterfaces', v.nicName)
+          id: networkInterface[index].id
           properties: {
             deleteOption: 'Delete'
           }
@@ -186,7 +193,6 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-08-01' = [for (v
           patchMode: 'AutomaticByOS'
           assessmentMode: 'ImageDefault'
           enableHotpatching: false
-          automaticByPlatformSettings: {}
         }
         timeZone: empty(vmTimezone) ? null : vmTimezone
       }
@@ -210,7 +216,7 @@ resource sqlVirtualMachine 'Microsoft.SqlVirtualMachine/sqlVirtualMachines@2022-
   location: location
   tags: allTags
   properties: {
-    virtualMachineResourceId: resourceId('Microsoft.Compute/virtualMachine', v.vmName)
+    virtualMachineResourceId: virtualMachine[index].id
     sqlManagement: 'Full'
     autoBackupSettings: {
       enable: false
@@ -237,10 +243,9 @@ resource sqlVirtualMachine 'Microsoft.SqlVirtualMachine/sqlVirtualMachines@2022-
   }
 }]
 
-resource vmAutoShutdown 'Microsoft.DevTestLab/labs/schedules@2018-09-15' = [for (v,index) in names: {
-  name: 'shutdown-${v.vmName}'
+resource vmAutoShutdown 'Microsoft.DevTestLab/schedules@2018-09-15' = [for (v,index) in names: {
+  name: any('shutdown-computevm-${v.vmName}')
   location: location
-  tags: tags
   properties: {
     status: empty(autoShutdownTime) ? 'Disabled' : 'Enabled'
     taskType: 'ComputeVmShutdownTask'

@@ -5,13 +5,16 @@ param baseName string
 param autoShutdownTime string = '1900'
 
 @description('Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown.')
-param emailNotification string
+param emailNotification string = ''
 
 @description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
 param location string = resourceGroup().location
 
-@description('The resourceId of teh subnet the NIC will join.')
-param subnetId string
+@description('The name of the Virtual Network.')
+param vnetName string
+
+@description('The name of the subnet for the Virtual Machine NIC.')
+param subnetName string
 
 @description('Azure Sku name for the Virtual Machine. If you want to use Docker, ensure you pick a sku that supports it. Defaults to Standard_D8s_v3')
 param size string = 'Standard_D8s_v3'
@@ -54,19 +57,26 @@ var imageReference = {
 var notifySettings = empty(emailNotification) ? {} : {
   timeInMinutes: 15
   status: 'Enabled'
-  emailRecipient: [
-    emailNotification
-  ]
+  emailRecipient: emailNotification
+  notificationLocale: 'en'
 }
 
 @description('Standardize name of VM')
-var vmName = '${baseName}01'
+var vmName = '${baseName}win1101'
 
 @description('Standardize name of Network Interface')
 var nicName = '${baseName}01-nic'
 
 @description('Standardize name of OS Disk')
 var osDiskName = '${baseName}01-osdisk'
+
+resource network 'Microsoft.Network/virtualNetworks@2022-05-01' existing = {
+  name: vnetName
+}
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-05-01' existing = {
+  name: subnetName
+  parent: network
+}
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2022-05-01' = {
   name: nicName
@@ -81,7 +91,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2022-05-01' = {
         properties: {
           primary: true
           subnet: {
-            id: subnetId
+            id: subnet.id
           }
           privateIPAllocationMethod: 'Dynamic'
           privateIPAddressVersion: 'IPv4'
@@ -135,7 +145,6 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-08-01' = {
           patchMode: 'AutomaticByOS'
           assessmentMode: 'ImageDefault'
           enableHotpatching: false
-          automaticByPlatformSettings: {}
         }
         timeZone: empty(vmTimezone) ? null : vmTimezone
       }
@@ -174,8 +183,8 @@ resource windowsVMExtensions 'Microsoft.Compute/virtualMachines/extensions@2022-
   }
 }
 
-resource vmAutoShutdown 'Microsoft.DevTestLab/labs/schedules@2018-09-15' = {
-  name: 'shutdown-${vmName}'
+resource vmAutoShutdown 'Microsoft.DevTestLab/schedules@2018-09-15' = {
+  name: any('shutdown-computevm-${vmName}')
   location: location
   tags: tags
   properties: {

@@ -51,11 +51,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2022-05-01' = {
   }
 }
 
-resource bastionSubnet 'Microsoft.Network/virtualnetworks/subnets@2015-06-15' existing = {
-  name: 'AzureBastionSubnet'
-  parent: virtualNetwork
-}
-
 resource bastionPip 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
   name: 'pip-bastion-dbatools'
   location: location
@@ -66,7 +61,7 @@ resource bastionPip 'Microsoft.Network/publicIPAddresses@2022-05-01' = {
   }
   properties: {
     publicIPAddressVersion: 'IPv4'
-    publicIPAllocationMethod: 'Dynamic'
+    publicIPAllocationMethod: 'Static'
   }
 }
 
@@ -88,7 +83,7 @@ resource bastionService 'Microsoft.Network/bastionHosts@2022-05-01' = {
             id: bastionPip.id
           }
           subnet: {
-            id: bastionSubnet.id
+            id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetwork.name, 'AzureBastionSubnet')
           }
         }
       }
