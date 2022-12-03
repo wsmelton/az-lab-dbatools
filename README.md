@@ -2,7 +2,9 @@
 
 This repository contains an Azure Bicep deployment that will provide a quick start lab to work with SQL Server and testing or developing against the [dbatools module](https://github.com/dataplat/dbatools).
 
-> **Note**: The Virtual Machines created using this deployment includes an auto-shutdown trigger for 7PM (19:00) local time.
+> **Note**: The Virtual Machines created using this deployment includes an auto-shutdown trigger for 7PM (19:00) your local time.
+
+![screenshot of auto-shutdown config](https://user-images.githubusercontent.com/11204251/205464340-a0f6d8b6-879f-423b-951d-d49a0aff698a.png)
 
 ## Why no Deploy to Azure button?
 
