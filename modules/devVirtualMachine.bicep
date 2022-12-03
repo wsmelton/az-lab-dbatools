@@ -40,10 +40,10 @@ var scriptFileName = last(split(cseFileUri, '/'))
 
 @description('Adding some standard tags for VMs')
 var allTags = union({
-  type: 'dev-vm'
-  osType: 'Windows'
-  osVersion: 'win11'
-}, tags)
+    type: 'dev-vm'
+    osType: 'Windows'
+    osVersion: 'win11'
+  }, tags)
 
 @description('Setting some default values for the image configuration')
 var imageReference = {
@@ -199,8 +199,13 @@ resource vmAutoShutdown 'Microsoft.DevTestLab/schedules@2018-09-15' = {
   }
 }
 
-@description('Virtual Machine name')
-output name string = virtualMachine.name
+@description('Name and IP Address of the Virtual Machine')
+output vmDetails array = [
+  {
+    name: virtualMachine.name
+    ipAddress: networkInterface.properties.ipConfigurations[0].properties.privateIPAddress
+  }
+]
 
 metadata repository = {
   author: 'Shawn Melton'

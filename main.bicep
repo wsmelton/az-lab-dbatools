@@ -118,7 +118,7 @@ metadata repository = {
 }
 
 @description('Developer VM name')
-output devVmName string = devVm.outputs.name
+output devWin11 array = devVm.outputs.vmDetails
 
 @description('Array of the SQL Server 2019 VMs')
 output sqlVm2022 array = sql2022OS22Vm.outputs.vmDetails
