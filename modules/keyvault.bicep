@@ -1,20 +1,20 @@
-@description('Provide the name of the Key Vault. Defaults to kv-dbatools-lab')
+@description('Required. Provide the name of the Key Vault. Defaults to kv-dbatools-lab')
 param baseName string
 
-@description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
+@description('Optional. The location to deploy the Virtual Machine. Defaults to Resource Group location. Default: resourceGroup().location')
 param location string = resourceGroup().location
 
-@description('Tags to assign to the resource')
+@description('Required. Tags to assign to the resource')
 param tags object
 
-@description('Local Admin username')
+@description('Required. Local Admin username')
 param adminUser string
 
-@description('Local Administrator password')
+@description('Required. Local Administrator password')
 @secure()
 param adminPassword string
 
-@description('User objectId to grant KV Administrator for Key Vault')
+@description('Required. User objectId to grant KV Administrator for Key Vault')
 param userId string
 
 @description('Adding some standard tags')

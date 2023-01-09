@@ -1,38 +1,38 @@
-@description('The base value to use for generating the Virtual Machine.')
+@description('Required. The base value to use for generating the Virtual Machine.')
 param baseName string
 
-@description('Time to automatically shutdown the VM each day. Defaults to 7PM')
+@description('Optional. Time to automatically shutdown the VM each day. Defaults to 7PM')
 param autoShutdownTime string = '1900'
 
-@description('Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown.')
+@description('Optional. Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown. Defaults: empty')
 param emailNotification string = ''
 
-@description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
+@description('Optional. The location to deploy the Virtual Machine. Defaults to Resource Group location. Default: resourceGroup().location')
 param location string = resourceGroup().location
 
-@description('The name of the Virtual Network.')
+@description('Required. The name of the Virtual Network.')
 param vnetName string
 
-@description('The name of the subnet for the Virtual Machine NIC.')
+@description('Required. The name of the subnet for the Virtual Machine NIC.')
 param subnetName string
 
-@description('Azure Sku name for the Virtual Machine. If you want to use Docker, ensure you pick a sku that supports it. Defaults to Standard_D8s_v3')
+@description('Optional. Azure Sku name for the Virtual Machine. If you want to use Docker, ensure you pick a sku that supports it. Defaults to Standard_D8s_v3')
 param size string = 'Standard_D8s_v3'
 
-@description('Username for the Virtual Machine local administrator account. Defaults to dbatools')
+@description('Optional. Username for the Virtual Machine local administrator account. Defaults to dbatools')
 param adminUser string = 'dbatools'
 
-@description('Provide the password for the local admin account')
+@description('Required. Provide the password for the local admin account')
 @secure()
 param adminPassword string
 
-@description('Select the Timezone for the Virtual Machine.')
+@description('Optional. Select the Timezone for the Virtual Machine. Default: empty')
 param vmTimezone string = ''
 
-@description('Tags to assign to the resource')
+@description('Required. Tags to assign to the resource')
 param tags object
 
-@description('File URI to script that will be executed on the Virtual Machine. Defaults to GitHub script of author.')
+@description('Optional. File URI to script that will be executed on the Virtual Machine. Defaults to GitHub script of author.')
 param cseFileUri string = 'https://raw.githubusercontent.com/wsmelton/az-lab-dbatools/main/scripts/devSetup.ps1'
 
 @description('Get the script name')

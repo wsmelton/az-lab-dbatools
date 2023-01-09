@@ -66,15 +66,15 @@ Clone the repository and then create the file `deploy-parameters.psd1` in the ro
 
 ```powershell
 @{
-    tenantId = '00000000-0000-000b-aa0a-000a000c0000'
+    tenantId       = '00000000-0000-000b-aa0a-000a000c0000'
     subscriptionId = '00000000-0000-000b-aa0a-000a000c0000'
-    location = 'eastus'
-    baseName = 'lab'
-    emailAddress = '<an email address>'
-    vmCount = 1
-    adminUser = 'labadmin'
-    timezone = 'Central Standard Time'
-    userId = '00000000-0000-0000-0000-000000000000'
+    location       = 'eastus'
+    baseName       = 'lab'
+    emailAddress   = '<an email address>'
+    vmCount        = 1
+    adminUser      = 'labadmin'
+    timezone       = 'Central Standard Time'
+    userId         = '00000000-0000-000b-aa0a-000a000c0000'
 }
 ```
 

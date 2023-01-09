@@ -1,38 +1,38 @@
-@description('The base value to use for generating the Virtual Machine.')
+@description('Required. The base value to use for generating the Virtual Machine.')
 param baseName string
 
-@description('Number of Virtual Machines to create. Defaults to 1')
+@description('Optional. Number of Virtual Machines to create. Defaults to 1')
 param count int = 1
 
-@description('Time to automatically shutdown the VM each day. Defaults to 7PM')
+@description('Optional. Time to automatically shutdown the VM each day. Defaults to 7PM')
 param autoShutdownTime string = '1900'
 
-@description('Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown.')
+@description('Optional. Email address to use for shutdown notification. If not provided no notification will be sent prior to shutdown. Default: empty')
 param emailNotification string = ''
 
-@description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
+@description('Optional. The location to deploy the Virtual Machine. Default: resourceGroup().location')
 param location string = resourceGroup().location
 
-@description('The name of the Virtual Network.')
+@description('Required. The name of the Virtual Network.')
 param vnetName string
 
-@description('The name of the subnet for the Virtual Machine NIC.')
+@description('Required. The name of the subnet for the Virtual Machine NIC.')
 param subnetName string
 
-@description('Enable accelerated networking feature on the Virtual Machine NIC. Defaults to false.')
+@description('Optional. Enable accelerated networking feature on the Virtual Machine NIC. Defaults to false.')
 param acceleratedNetworking bool = false
 
-@description('Azure Sku name for the Virtual Machine. Defaults to Standard_B4ms')
+@description('Optional. Azure Sku name for the Virtual Machine. Defaults to Standard_B4ms')
 param size string = 'Standard_B4ms'
 
-@description('Username for the Virtual Machine local administrator account. Defaults to dbatools')
+@description('Optional. Username for the Virtual Machine local administrator account. Defaults to dbatools')
 param adminUser string = 'dbatools'
 
-@description('Provide the password for the local admin account')
+@description('Required. Provide the password for the local admin account')
 @secure()
 param adminPassword string
 
-@description('Provide the storage account type to use for the OS disk. Defaults to StandardSSD_LRS')
+@description('Optional. Provide the storage account type to use for the OS disk. Defaults to StandardSSD_LRS')
 @allowed([
   'Premium_LRS'
   'Premium_ZRS'
@@ -42,7 +42,7 @@ param adminPassword string
 ])
 param osDiskType string = 'StandardSSD_LRS'
 
-@description('Provide the storage account type to use for any data disk added. Defaults to StandardSSD_LRS')
+@description('Optional. Provide the storage account type to use for any data disk added. Defaults to StandardSSD_LRS')
 @allowed([
   'Premium_LRS'
   'Premium_ZRS'
@@ -52,7 +52,7 @@ param osDiskType string = 'StandardSSD_LRS'
 ])
 param dataDiskType string = 'StandardSSD_LRS'
 
-@description('Select the offer of the marketplace image to create a SQL Server Virtual Machine. Will deploy SQL Server Developer Edition')
+@description('Required. Select the offer of the marketplace image to create a SQL Server Virtual Machine. Will deploy SQL Server Developer Edition')
 @allowed([
   'sql2019-ws2022'
   'sql2022-ws2022'
@@ -66,10 +66,10 @@ param dataDiskType string = 'StandardSSD_LRS'
 ])
 param offer string
 
-@description('Select the Timezone for the Virtual Machine.')
+@description('Optional. Select the Timezone for the Virtual Machine. Default: empty')
 param vmTimezone string = ''
 
-@description('Tags to assign to the resource')
+@description('Required. Tags to assign to the resource')
 param tags object
 
 @description('Adding some standard tags for VMs')

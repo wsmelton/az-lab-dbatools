@@ -1,10 +1,10 @@
-@description('Provide the name of the Key Vault. Defaults to kv-dbatools-lab')
+@description('Required. Provide the name of the Key Vault. Defaults to kv-dbatools-lab')
 param baseName string
 
-@description('The location to deploy the Virtual Machine. Defaults to Resource Group location')
+@description('Optional. The location to deploy the Virtual Machine. Default: resourceGroup().location')
 param location string = resourceGroup().location
 
-@description('Tags to assign to the resource')
+@description('Required. Tags to assign to the resource')
 param tags object
 
 @description('Adding some standard tags')
