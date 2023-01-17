@@ -7,6 +7,9 @@ param location string = resourceGroup().location
 @description('Required. Tags to assign to the resource')
 param tags object
 
+@description('Optional. Disable auto-registration for VMs in VNET. Default false')
+param disableVmRegistration bool = false
+
 @description('Adding some standard tags')
 var allTags = union({
   type: 'networking'
@@ -88,6 +91,23 @@ resource bastionService 'Microsoft.Network/bastionHosts@2022-05-01' = {
         }
       }
     ]
+  }
+}
+
+resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: '${baseName}.com'
+  location: 'global'
+}
+
+resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: privateDnsZone
+  name: '${virtualNetwork.name}-link'
+  location: 'global'
+  properties: {
+    registrationEnabled: disableVmRegistration ? false : true
+    virtualNetwork: {
+      id: virtualNetwork.id
+    }
   }
 }
 
