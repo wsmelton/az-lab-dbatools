@@ -10,3 +10,6 @@ Get-NetFirewallProfile | Set-NetFirewallProfile -Enabled false
 
 <# Set the #>
 Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters' -Name 'NV Domain' -Value $dnsName
+
+<# Enable PSRemoting on Workgroup server #>
+Enable-PSRemoting -SkipNetworkProfileCheck -Force

@@ -72,6 +72,15 @@ param vmTimezone string = ''
 @description('Required. Tags to assign to the resource')
 param tags object
 
+@description('Optional. Private DNS Zone. Default: [baseName].com')
+param privateDnsZone string = '${baseName}.com'
+
+@description('Optional. File URI to script that will be executed on the Virtual Machine. Defaults to GitHub script of author.')
+param cseFileUri string = 'https://raw.githubusercontent.com/wsmelton/az-lab-dbatools/main/scripts/serverConfig.ps1'
+
+@description('Get the script name')
+var scriptFileName = last(split(cseFileUri, '/'))
+
 @description('Adding some standard tags for VMs')
 var allTags = union({
   type: 'sql-vm'
@@ -211,7 +220,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2022-08-01' = [for (v
   ]
 }]
 
-resource sqlVirtualMachine 'Microsoft.SqlVirtualMachine/sqlVirtualMachines@2022-07-01-preview' = [for (v,index) in names: {
+resource sqlVirtualMachine 'Microsoft.SqlVirtualMachine/sqlVirtualMachines@2022-02-01' = [for (v,index) in names: {
   name: v.vmName
   location: location
   tags: allTags
@@ -239,6 +248,26 @@ resource sqlVirtualMachine 'Microsoft.SqlVirtualMachine/sqlVirtualMachines@2022-
       sqlTempDbSettings: {
         defaultFilePath: 'D:\\SqlTemp'
       }
+    }
+  }
+}]
+
+resource windowsVMExtensions 'Microsoft.Compute/virtualMachines/extensions@2022-08-01' = [for (v,index) in names: {
+  name: '${v.vmName}-configScript'
+  parent: virtualMachine[index]
+  location: location
+  properties: {
+    publisher: 'Microsoft.Compute'
+    type: 'CustomScriptExtension'
+    typeHandlerVersion: '1.10'
+    autoUpgradeMinorVersion: true
+    settings: {
+      fileUris: [
+        cseFileUri
+      ]
+    }
+    protectedSettings: {
+      commandToExecute: 'powershell -ExecutionPolicy Bypass -file ${scriptFileName}'
     }
   }
 }]
